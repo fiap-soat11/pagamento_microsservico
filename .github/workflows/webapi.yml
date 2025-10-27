@@ -8,7 +8,7 @@ jobs:
     build-and-push:
         runs-on: ubuntu-latest
         env:
-            ECR_REPO_NAME: 'fiap-webapi'
+            ECR_REPO_NAME: 'fiap-pagamento'
             IMAGE_TAG: 'latest'
         steps:
             - name: Checkout code

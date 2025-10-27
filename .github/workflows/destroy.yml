@@ -1,11 +1,11 @@
-name: Destruir Repo ECR WebApi
+name: Destruir Repo ECR pagamento
 on:
     workflow_dispatch:
 jobs:
     build-and-push:
         runs-on: ubuntu-latest
         env:
-            ECR_REPO_NAME: 'fiap-webapi'
+            ECR_REPO_NAME: 'fiap-pagamento'
             IMAGE_TAG: 'latest'
         steps:
             - name: Configure AWS credentials
