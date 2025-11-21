@@ -20,7 +20,5 @@ public partial class Pagamento
 
     public virtual FormaPagamento? IdFormaPagamentoNavigation { get; set; }
 
-    public virtual Pedido IdPedidoNavigation { get; set; } = null!;
-
     public virtual StatusPagamento? IdStatusPagamentoNavigation { get; set; }
 }

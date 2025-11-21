@@ -1,10 +1,4 @@
-﻿using Adapters.Controllers;
-using Adapters.Controllers.Interfaces;
-using Adapters.Gateways;
-using Adapters.Gateways.Interfaces;
-using Application.Interfaces;
-using Application.UseCases;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Adapters.Configurations

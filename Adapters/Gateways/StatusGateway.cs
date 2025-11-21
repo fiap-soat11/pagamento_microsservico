@@ -11,19 +11,5 @@ namespace Adapters.Gateways
         {
             _statusDataSource = statusDataSource;
         }
-        public async Task<IEnumerable<Status>> ListarTodosStatus()
-        {
-            return await _statusDataSource.ListarTodosStatus();
-        }
-
-        public async Task<Status> BuscarStatusPorNome(string nomeStatus)
-        {
-            return await _statusDataSource.BuscarStatusPorNome(nomeStatus);
-        }
-
-        public async Task<Status> BuscarStatusPorId(int idStatus)
-        {
-            return await _statusDataSource.BuscarStatusPorId(idStatus);
-        }
     }
 }

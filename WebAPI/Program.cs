@@ -82,7 +82,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 builder.Services.AddHttpClient();
 builder.Services.AddInfraStructure(builder.Configuration);
-builder.Services.AddValidators(builder.Configuration);
 
 var app = builder.Build();
 
