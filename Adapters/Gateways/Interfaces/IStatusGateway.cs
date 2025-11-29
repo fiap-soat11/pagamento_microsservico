@@ -3,9 +3,11 @@ using Domain;
 namespace Adapters.Gateways.Interfaces
 {
     public interface IStatusGateway
-    {      
-        Task<IEnumerable<Status>> ListarTodosStatus();
-        Task<Status> BuscarStatusPorNome(string nomeStatus);
-        Task<Status> BuscarStatusPorId(int idStatus);
+    {
+        IEnumerable<StatusPagamento> ListarTodos();
+        StatusPagamento? BuscarPorId(int id);
+        void Inserir(StatusPagamento status);
+        void Atualizar(StatusPagamento status);
+        void Excluir(int id);
     }
 }

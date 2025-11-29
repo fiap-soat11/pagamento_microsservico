@@ -21,10 +21,10 @@ namespace DataSource.Repositories
 
         public IEnumerable<TEntity> ListarTodos()
         {
-            return Dbset.AsEnumerable();
+            return Dbset.AsNoTracking().AsEnumerable();
         }
 
-        public TEntity BuscarPorId(TKey id)
+        public TEntity? BuscarPorId(TKey id)
         {
             return Dbset.Find(id);
         }
@@ -42,7 +42,7 @@ namespace DataSource.Repositories
                 throw new ArgumentNullException("predicate");
             }
 
-            return Dbset.Where(predicate);
+            return Dbset.AsNoTracking().Where(predicate);
         }
 
 
