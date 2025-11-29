@@ -1,6 +1,8 @@
-﻿namespace Adapters.Controllers.Interfaces;
+﻿using Adapters.Presenters.Pagamento;
+
+namespace Adapters.Controllers.Interfaces;
 
 public interface IPagamentoController
 {
-    Task ConsultarPagamento(long pagamentoId);
+    Task<PagamentoResponse> ConsultarPagamento(long pagamentoId);
 }

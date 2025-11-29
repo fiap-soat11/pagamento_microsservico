@@ -11,7 +11,7 @@ namespace Adapters.Presenters.QRCode
         public bool LiveMode { get; set; }
 
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public required string Type { get; set; }
 
         [JsonPropertyName("date_created")]
         public DateTime DateCreated { get; set; }
@@ -20,18 +20,18 @@ namespace Adapters.Presenters.QRCode
         public int UserId { get; set; }
 
         [JsonPropertyName("api_version")]
-        public string ApiVersion { get; set; }
+        public required string ApiVersion { get; set; }
 
         [JsonPropertyName("action")]
-        public string Action { get; set; }
+        public required string Action { get; set; }
 
         [JsonPropertyName("data")]
-        public DadosNotificacaoRequest Data { get; set; }
+        public required DadosNotificacaoRequest Data { get; set; }
     }
 
     public class  DadosNotificacaoRequest
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public required string Id { get; set; }
     }
 }

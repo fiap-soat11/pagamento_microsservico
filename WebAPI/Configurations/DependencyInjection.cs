@@ -34,9 +34,7 @@ namespace WebAPI.Configurations
 
             #endregion
 
-           
             /* ***** serviços de acesso a base ***** */
-            Services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(mySqlConnectionString, ServerVersion.AutoDetect(mySqlConnectionString)));
             Services.AddScoped<IDataSource, DataSource.DataSource>();
 
 
@@ -46,6 +44,9 @@ namespace WebAPI.Configurations
 
             /* ***** serviços de acesso a dados ***** */
             Services.AddScoped<IStatusGateway, StatusGateway>();
+            Services.AddScoped<DataSource.Repositories.Interfaces.IFormaPagamentoRepository, DataSource.Repositories.FormaPagamentoRepository>();
+            Services.AddScoped<DataSource.Repositories.Interfaces.IPagamentoRepository, DataSource.Repositories.PagamentoRepository>();
+            Services.AddScoped<DataSource.Repositories.Interfaces.IStatusPagamentoRepository, DataSource.Repositories.StatusPagamentoRepository>();
 
 
             /* ***** serviços de negocio ***** */
