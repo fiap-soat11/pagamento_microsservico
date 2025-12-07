@@ -11,19 +11,30 @@ namespace Adapters.Gateways
         {
             _statusDataSource = statusDataSource;
         }
-        public async Task<IEnumerable<Status>> ListarTodosStatus()
+
+        public IEnumerable<StatusPagamento> ListarTodos()
         {
-            return await _statusDataSource.ListarTodosStatus();
+            return _statusDataSource.ListarStatusPagamento();
         }
 
-        public async Task<Status> BuscarStatusPorNome(string nomeStatus)
+        public StatusPagamento? BuscarPorId(int id)
         {
-            return await _statusDataSource.BuscarStatusPorNome(nomeStatus);
+            return _statusDataSource.BuscarStatusPagamentoPorId(id);
         }
 
-        public async Task<Status> BuscarStatusPorId(int idStatus)
+        public void Inserir(StatusPagamento status)
         {
-            return await _statusDataSource.BuscarStatusPorId(idStatus);
+            _statusDataSource.InserirStatusPagamento(status);
+        }
+
+        public void Atualizar(StatusPagamento status)
+        {
+            _statusDataSource.AtualizarStatusPagamento(status);
+        }
+
+        public void Excluir(int id)
+        {
+            _statusDataSource.ExcluirStatusPagamento(id);
         }
     }
 }

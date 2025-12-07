@@ -3,26 +3,23 @@ using Adapters.Gateways.Interfaces;
 using Adapters.Mappers;
 using Adapters.Presenters.QRCode;
 using Application.Configurations;
-using Application.Interfaces;
 using Application.UseCases;
 using MercadoPago.Client.Preference;
 using Microsoft.Extensions.Logging;
 
 namespace Adapters.Controllers
 {
-    public class QRCodeController(ILogger<QRCodeController> logger, IPedidoGateway pedidoGateway, IMercadoPagoUseCase mercadoPagoUseCase) : IQRCodeController
+    public class QRCodeController(ILogger<QRCodeController> logger, 
+        IMercadoPagoUseCase mercadoPagoUseCase,
+        IDataSource dataSource) : IQRCodeController
     {
+        private readonly ILogger<QRCodeController> _logger = logger;
+        private readonly IDataSource _dataSource = dataSource;
 
-        public async Task<QRCodeResponse> GerarQRCodePedido(int idPedido)
+        public async Task<QRCodeResponse> GerarQRCodePedido(int idPedido, decimal valorTotal, int quantidadeTotal)
         {
             if (idPedido <= 0)
                 throw new BusinessException("Pedido informado");
-
-            var pedido = await pedidoGateway.BuscarPedidoPorId(idPedido);
-            if (pedido is null)
-                throw new BusinessException("Pedido não existe.");
-
-            var quantidadeTotal = pedidoGateway.CarregarTodosProdutosPedido(idPedido).Result.Sum(d => d.Quantidade.GetValueOrDefault());
 
             var request = new PreferenceRequest
             {
@@ -32,17 +29,32 @@ namespace Adapters.Controllers
                     {
                         Title = "Pedido de Teste - FIAP",
                         Quantity = quantidadeTotal,
-                        UnitPrice =  pedido.ValorTotal.GetValueOrDefault(),
+                        UnitPrice =  valorTotal,
                     }
                 },
                 ExternalReference = idPedido.ToString()
             };
 
+            _logger.LogInformation("Gerando QRCode para pedido {PedidoId}", idPedido);
             var result = await mercadoPagoUseCase.CriarQRCodeAsync(request);
 
-            pedido.QRCode = result.ImageBase64;
+            // Inserir registro de pagamento com defaults
+            var pagamento = new Domain.Pagamento
+            {
+                IdPedido = idPedido,
+                IdFormaPagamento = (int)Domain.Enums.FormaPagamentoTipo.Pix,
+                IdStatusPagamento = (int)Domain.Enums.StatusPagamentoTipo.Pendente,
+                ValorPago = valorTotal,
+                DataPagamento = null,
+                Tentativa = 0
+            };
 
-            pedidoGateway.AtualizarPedido(pedido);
+            _dataSource.InserirPagamento(pagamento);
+            _logger.LogInformation("Pagamento inicial inserido para pedido {PedidoId}", idPedido);
+
+            //pedido.QRCode = result.ImageBase64;
+
+            //pedidoGateway.AtualizarPedido(pedido);
 
             return QRCodeMapper.QRCodeMapperDTO(result);
         }
@@ -52,32 +64,36 @@ namespace Adapters.Controllers
             if (idPedido <= 0)
                 throw new BusinessException("Pedido não informado.");
 
-            var pedido = await pedidoGateway.BuscarPedidoPorId(idPedido);
-
-            if (pedido is null)
-                throw new BusinessException("Pedido não existe.");
-
-            if (string.IsNullOrEmpty(pedido.QRCode))
-                throw new BusinessException("O Pedido não tem QRCode gerado.");
-
             try
             {
                 await mercadoPagoUseCase.PagarQRCodeAsync(idPedido);
-                await pedidoGateway.AtualizarStatusPedido(3, idPedido);
+                var pagamento = _dataSource.BuscarPagamentoPorPedido(idPedido);
+                if (pagamento != null)
+                {
+                    pagamento.DataPagamento = DateTime.UtcNow;
+                    pagamento.IdStatusPagamento = (int)Domain.Enums.StatusPagamentoTipo.Aprovado;
+                    _dataSource.AtualizarPagamento(pagamento);
+                    _logger.LogInformation("Pagamento aprovado para pedido {PedidoId}", idPedido);
+                }
+                //   await pedidoGateway.AtualizarStatusPedido(3, idPedido);
             }
             catch (Exception)
             {
-                if (pedido.Pagamentos.Any() && pedido.Pagamentos.FirstOrDefault().Tentativa.GetValueOrDefault() >= 5)
+                var pagamento = _dataSource.BuscarPagamentoPorPedido(idPedido);
+                if (pagamento != null)
                 {
-                    await pedidoGateway.FinalizarPedido(idPedido);
+                    pagamento.DataPagamento = null;
+                    pagamento.IdStatusPagamento = (int)Domain.Enums.StatusPagamentoTipo.Recusado;
+                    pagamento.Tentativa = (pagamento.Tentativa ?? 0) + 1;
+                    _dataSource.AtualizarPagamento(pagamento);
+                    _logger.LogWarning("Pagamento recusado para pedido {PedidoId}", idPedido);
                 }
-
+                //if (pedido.Pagamentos.Any() && pedido.Pagamentos.FirstOrDefault().Tentativa.GetValueOrDefault() >= 5)
+                //{
+                //    await pedidoGateway.FinalizarPedido(idPedido);
+                //}
                 throw;
             }
-        }
-        public async Task NotificacaoPagamento()
-        {
-
         }
     }
 }

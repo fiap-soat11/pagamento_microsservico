@@ -1,5 +1,7 @@
 using Microsoft.OpenApi.Models;
 using WebAPI.Configurations;
+using FluentValidation;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +21,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? string.Empty)),
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -55,8 +58,9 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Insira o token JWT no formato: Bearer {seu token}",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
     });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -74,17 +78,32 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Configure JSON once; avoid preserving references unless necessary
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    options.JsonSerializerOptions.WriteIndented = true; // opcional
+    options.JsonSerializerOptions.WriteIndented = true;
 });
+
+// FluentValidation automatic model validation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Adapters.Presenters.QRCode.QRCodeRequest>();
+
+// Health checks for observability
+builder.Services.AddHealthChecks();
 
 builder.Services.AddHttpClient();
 builder.Services.AddInfraStructure(builder.Configuration);
-builder.Services.AddValidators(builder.Configuration);
 
 var app = builder.Build();
+
+// Fail-fast if critical JWT config is missing
+string? jwtKey = builder.Configuration["Jwt:Key"];
+string? jwtIssuer = builder.Configuration["Jwt:Issuer"];
+string? jwtAudience = builder.Configuration["Jwt:Audience"];
+if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new InvalidOperationException("JWT configuration is missing: ensure Jwt:Key, Jwt:Issuer, and Jwt:Audience are set.");
+}
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -105,5 +124,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

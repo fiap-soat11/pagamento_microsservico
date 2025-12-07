@@ -1,6 +1,5 @@
-﻿using Adapters.Controllers.Interfaces;
-using Adapters.Presenters.Pedido;
-using Adapters.Presenters.QRCode;
+﻿
+using Adapters.Controllers.Interfaces;
 using Application.UseCases;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,13 +21,13 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("GerarQRCodePedido")]
-        [ProducesResponseType(typeof(PedidoCozinhaResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GerarQRCodePedido(int idPedido, [FromServices] IQRCodeController controller)
+        public async Task<IActionResult> GerarQRCodePedido(int idPedido, decimal valorTotal, int quantidadeTotal, [FromServices] IQRCodeController controller)
         {
-            var result = await controller.GerarQRCodePedido(idPedido);
+            var result = await controller.GerarQRCodePedido(idPedido, valorTotal, quantidadeTotal);
 
             return Ok(new
             {
@@ -38,7 +37,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("PagarQRCodePedido")]
-        [ProducesResponseType(typeof(PedidoCozinhaResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -65,10 +64,5 @@ namespace WebAPI.Controllers
         }
 
         
-
-        #region Method's
-
-
-        #endregion
     }
 }

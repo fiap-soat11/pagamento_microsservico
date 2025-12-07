@@ -12,7 +12,7 @@ namespace DataSource.Repositories
         void Inserir(TEntity entity);
         void Atualizar(TEntity entity);
         void Excluir(TKey id);
-        TEntity BuscarPorId(TKey id);
+        TEntity? BuscarPorId(TKey id);
         IEnumerable<TEntity> Buscar(Expression<Func<TEntity, bool>> predicate);
         IEnumerable<TEntity> ListarTodos();
 

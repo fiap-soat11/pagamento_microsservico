@@ -22,7 +22,8 @@ namespace Tests
                 .AddInMemoryCollection(configData)
                 .Build();
 
-            //_useCase = new MercadoPagoUseCase(configuration);
+            var httpClientFactory = new HttpClientFactoryStub();
+            _useCase = new MercadoPagoUseCase(configuration, httpClientFactory);
         }
 
         [TestMethod]
@@ -62,5 +63,13 @@ namespace Tests
                 Assert.AreEqual("Erro ao fazer o pagamento.", ex.Message);
             }
         }
+    }
+}
+
+internal class HttpClientFactoryStub : IHttpClientFactory
+{
+    public HttpClient CreateClient(string name = null)
+    {
+        return new HttpClient();
     }
 }
